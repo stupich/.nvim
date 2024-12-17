@@ -1,13 +1,7 @@
 require("config.lazy")
 
 
-vim.cmd [[
-highlight Normal guibg=none
-highlight NonText guibg=none
-highlight Normal ctermbg=none
-highlight NonText ctermbg=none
-]]
-
+print("huh")
 --options
 vim.opt.scrolloff = 14
 vim.opt.inccommand = 'split'
@@ -49,8 +43,6 @@ vim.keymap.set("n", "<M-j>", "<C-W>-")
 vim.keymap.set("n", "J", "mzJ'z")
 vim.keymap.set("n", "<leader>ut", "<cmd>UndotreeToggle<CR>")
 vim.keymap.set("x", "<leader>p", "\"_dP")
-vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv")
-vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv")
 vim.keymap.set("n", "<C-d>", "<C-d>zzzv")
 vim.keymap.set("n", "<C-u>", "<C-u>zzzv")
 vim.keymap.set("n", "n", "nzzzv")
@@ -66,20 +58,20 @@ vim.keymap.set("n", "<C-c>", "<cmd>nohlsearch<CR>")
 
 --rust-analyzer workaround, for before nvim 0.11
 for _, method in ipairs({ 'textDocument/diagnostic', 'workspace/diagnostic' }) do
-    local default_diagnostic_handler = vim.lsp.handlers[method]
-    vim.lsp.handlers[method] = function(err, result, context, config)
-        if err ~= nil and err.code == -32802 then
-            return
-        end
-        return default_diagnostic_handler(err, result, context, config)
+  local default_diagnostic_handler = vim.lsp.handlers[method]
+  vim.lsp.handlers[method] = function(err, result, context, config)
+    if err ~= nil and err.code == -32802 then
+      return
     end
+    return default_diagnostic_handler(err, result, context, config)
+  end
 end
 
 
-vim.api.nvim_create_autocmd('TextYankPost', {
-    desc = 'Highlight',
-    group = vim.api.nvim_create_augroup('highlight-yank', { clear = true }),
-    callback = function()
-        vim.highlight.on_yank()
-    end,
+vim.api.nvim_create_autocmd('textyankpost', {
+  desc = 'Highlight',
+  group = vim.api.nvim_create_augroup('highlight-yank', { clear = true }),
+  callback = function()
+    vim.highlight.on_yank()
+  end,
 })

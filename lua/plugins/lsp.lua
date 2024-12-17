@@ -13,28 +13,45 @@ return {
       },
     },
     config = function()
+      local capabilities = vim.lsp.protocol.make_client_capabilities()
+      capabilities = vim.tbl_deep_extend('force', capabilities, require('cmp_nvim_lsp').default_capabilities())
+      local serv = { zls = { cmd = 'usr/bin/zls' }, gopls = {} }
+      serv.capabilities = vim.tbl_deep_extend('force', {}, capabilities)
       vim.keymap.set("n", "<space>rn", vim.lsp.buf.rename)
       vim.keymap.set("n", "<space>ca", vim.lsp.buf.code_action)
+      require("lspconfig").pyright.setup {}
       require("lspconfig").lua_ls.setup {}
-      require("lspconfig").gopls.setup {}
-      require("lspconfig").rust_analyzer.setup {
-      }
-      require("lspconfig").zls.setup {}
-      vim.api.nvim_create_autocmd('LspAttach', {
-        callback = function(args)
-          local client = vim.lsp.get_client_by_id(args.data.client_id)
-          if not client then return end
-          if client.supports_method('textDocument/formatting') then
-            vim.api.nvim_create_autocmd('BufWritePre', {
-              buffer = args.buf,
-              callback = function()
-                vim.lsp.buf.format({ bufnr = args.buf, id = client.id })
-              end,
-            })
-          end
-        end,
-      })
+      require("lspconfig").gopls.setup(serv)
+      require("lspconfig").rust_analyzer.setup {}
+      require("lspconfig").zls.setup(serv)
     end,
+  },
+  {
+    "stevearc/conform.nvim",
+    event = { 'BufWritePre' },
+    cmd = { 'ConformInfo' },
+    keys = {},
+    opts = {
+      format_on_save = function(bufnr)
+        -- Disable "format_on_save lsp_fallback" for languages that don't
+        -- have a well standardized coding style. You can add additional
+        -- languages here or re-enable it for the disabled ones.
+        local disable_filetypes = { c = true, cpp = true }
+        local lsp_format_opt
+        if disable_filetypes[vim.bo[bufnr].filetype] then
+          lsp_format_opt = 'never'
+        else
+          lsp_format_opt = 'fallback'
+        end
+        return {
+          timeout_ms = 500,
+          lsp_format = lsp_format_opt,
+        }
+      end,
+      formatters_by_ft = {
+        zig = { 'zig fmt' },
+      },
+    },
   },
   {
     "hrsh7th/nvim-cmp",
@@ -53,7 +70,7 @@ return {
       lspkind.init {}
       local cmp = require 'cmp'
       cmp.setup {
-        completion = { completeopt = 'menu,menuone,noselect' },
+        completion = { completeopt = 'menu,menuone,noinsert' },
         mapping = cmp.mapping.preset.insert {
           ['<C-n>'] = cmp.mapping.select_next_item(),
           ['<C-p>'] = cmp.mapping.select_prev_item(),
@@ -63,8 +80,8 @@ return {
         },
         sources = {
           { name = 'lazydev', group_index = 0, },
-          { name = 'nvim_lsp' },
           { name = 'luasnip' },
+          { name = 'nvim_lsp' },
           { name = 'path' },
           { name = 'buffer' },
         },
@@ -79,6 +96,7 @@ return {
         history = false,
         updateevents = "TextChanged,TextChangedI",
       }
+      ls.config.setup {}
       vim.keymap.set({ "i", "s" }, "<c-l>", function()
         if ls.expand_or_jumpable() then
           ls.expand_or_jump()
