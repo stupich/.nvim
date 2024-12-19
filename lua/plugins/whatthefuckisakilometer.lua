@@ -12,8 +12,13 @@ return {
           show_hidden = true,
         },
       }
-      vim.keymap.set("n", "-", "<CMD>Oil<CR>")
-      vim.keymap.set("n", "<space>-", require("oil").toggle_float)
+      vim.keymap.set("n", "-", require("oil").toggle_float)
+    end
+  },
+  {
+    "Eandrju/cellular-automaton.nvim",
+    config = function()
+      vim.keymap.set("n", "<leader>fml", "<cmd>CellularAutomaton make_it_rain<CR>")
     end
   }
 }

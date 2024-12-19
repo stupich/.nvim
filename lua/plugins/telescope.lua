@@ -25,6 +25,10 @@ return {
         require('telescope.builtin').find_files
       )
       vim.keymap.set("n", "<space>fw", require('telescope.builtin').grep_string)
+      vim.keymap.set("n", "<space>fW", function()
+        local word = vim.fn.expand("<cWORD>")
+        require("telescope.builtin").grep_string({ search = word })
+      end)
       vim.keymap.set("n", "<space>ep", function()
         require('telescope.builtin').find_files {
           cwd = vim.fs.joinpath(vim.fn.stdpath("data"), "lazy")

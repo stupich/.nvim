@@ -1,7 +1,33 @@
 return {
   {
+    "Saghen/blink.cmp",
+    version = 'v0.7.6',
+    dependencies = {
+      { "L3MON4D3/LuaSnip", build = 'make install_jsregexp' },
+    },
+    opts = {
+      keymap = { preset = 'default' },
+
+      appearance = {
+        use_nvim_cmp_as_default = true,
+        nerd_font_variant = 'mono'
+      },
+
+      sources = {
+        default = { 'lazydev', 'lsp', 'path', 'luasnip', 'buffer' },
+      },
+
+      signature = { enabled = true }
+    },
+    -- allows extending the providers array elsewhere in your config
+    -- without having to redefine it
+    opts_extend = { "sources.default" }
+
+  },
+  {
     "neovim/nvim-lspconfig",
     dependencies = {
+      'saghen/blink.cmp',
       {
         "folke/lazydev.nvim",
         ft = "lua",
@@ -12,18 +38,17 @@ return {
         }
       },
     },
-    config = function()
-      local capabilities = vim.lsp.protocol.make_client_capabilities()
-      capabilities = vim.tbl_deep_extend('force', capabilities, require('cmp_nvim_lsp').default_capabilities())
-      local serv = { zls = { cmd = 'usr/bin/zls' }, gopls = {} }
-      serv.capabilities = vim.tbl_deep_extend('force', {}, capabilities)
+    opts = { servers = { lua_ls = {}, zls = {}, rust_analyzer = {}, gopls = {} } },
+    config = function(_, opts)
       vim.keymap.set("n", "<space>rn", vim.lsp.buf.rename)
       vim.keymap.set("n", "<space>ca", vim.lsp.buf.code_action)
-      require("lspconfig").pyright.setup {}
-      require("lspconfig").lua_ls.setup {}
-      require("lspconfig").gopls.setup(serv)
-      require("lspconfig").rust_analyzer.setup {}
-      require("lspconfig").zls.setup(serv)
+      local lspconfig = require('lspconfig')
+      for server, config in pairs(opts.servers) do
+        -- passing config.capabilities to blink.cmp merges with the capabilities in your
+        -- `opts[server].capabilities, if you've defined it
+        config.capabilities = require('blink.cmp').get_lsp_capabilities(config.capabilities)
+        lspconfig[server].setup(config)
+      end
     end,
   },
   {
@@ -52,61 +77,5 @@ return {
         zig = { 'zig fmt' },
       },
     },
-  },
-  {
-    "hrsh7th/nvim-cmp",
-    lazy = false,
-    priority = 100,
-    dependencies = {
-      "hrsh7th/cmp-buffer",
-      { "L3MON4D3/LuaSnip", build = 'make install_jsregexp' },
-      "saadparwaiz1/cmp_luasnip",
-      "hrsh7th/cmp-nvim-lsp",
-      "hrsh7th/cmp-path",
-      "onsails/lspkind.nvim",
-    },
-    config = function()
-      local lspkind = require "lspkind"
-      lspkind.init {}
-      local cmp = require 'cmp'
-      cmp.setup {
-        completion = { completeopt = 'menu,menuone,noinsert' },
-        mapping = cmp.mapping.preset.insert {
-          ['<C-n>'] = cmp.mapping.select_next_item(),
-          ['<C-p>'] = cmp.mapping.select_prev_item(),
-          ['<C-b>'] = cmp.mapping.scroll_docs(-4),
-          ['<C-f>'] = cmp.mapping.scroll_docs(4),
-          ['<C-y>'] = cmp.mapping.confirm { select = true },
-        },
-        sources = {
-          { name = 'lazydev', group_index = 0, },
-          { name = 'luasnip' },
-          { name = 'nvim_lsp' },
-          { name = 'path' },
-          { name = 'buffer' },
-        },
-        snippet = {
-          expand = function(args)
-            require("luasnip").lsp_expand(args.body)
-          end,
-        },
-      }
-      local ls = require "luasnip"
-      ls.config.set_config {
-        history = false,
-        updateevents = "TextChanged,TextChangedI",
-      }
-      ls.config.setup {}
-      vim.keymap.set({ "i", "s" }, "<c-l>", function()
-        if ls.expand_or_jumpable() then
-          ls.expand_or_jump()
-        end
-      end, { silent = true })
-      vim.keymap.set({ "i", "s" }, "<c-h>", function()
-        if ls.jumpable(-1) then
-          ls.jump(-1)
-        end
-      end, { silent = true })
-    end
   },
 }
