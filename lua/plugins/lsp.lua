@@ -38,7 +38,7 @@ return {
         }
       },
     },
-    opts = { servers = { lua_ls = {}, zls = {}, rust_analyzer = {}, gopls = {} } },
+    opts = { servers = { lua_ls = {}, zls = {}, rust_analyzer = {}, gopls = {}, gdscript = {} } },
     config = function(_, opts)
       vim.keymap.set("n", "<space>rn", vim.lsp.buf.rename)
       vim.keymap.set("n", "<space>ca", vim.lsp.buf.code_action)
