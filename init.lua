@@ -1,7 +1,6 @@
 require("config.lazy")
 
 
-print("huh")
 --options
 vim.opt.scrolloff = 14
 vim.opt.inccommand = 'split'
