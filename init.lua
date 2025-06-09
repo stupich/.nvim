@@ -8,6 +8,11 @@ vim.opt.cursorline = true
 vim.opt.hlsearch = true
 vim.opt.incsearch = true
 vim.opt.termguicolors = true
+require('moonfly').custom_colors({
+  bg = "#000000",
+})
+vim.cmd [[colorscheme moonfly]]
+vim.api.nvim_set_hl(0, 'MiniFilesNormal', { bg = '#000000' })
 vim.opt.shiftwidth = 4
 vim.opt.tabstop = 4
 vim.opt.softtabstop = 4
@@ -25,10 +30,9 @@ vim.opt.undofile = true
 vim.opt.signcolumn = "yes"
 vim.opt.updatetime = 50
 vim.opt.colorcolumn = "80"
+vim.lsp.set_log_level("ERROR")
 
 --keymaps
-vim.keymap.set('n', "[d", vim.diagnostic.goto_prev)
-vim.keymap.set('n', "]d", vim.diagnostic.goto_next)
 vim.keymap.set('n', "<leader>q", vim.diagnostic.setloclist)
 vim.keymap.set('n', "<leader><leader>x", "<cmd>source %<CR>")
 vim.keymap.set("n", "<c-j>", "<c-w><c-j>")
@@ -41,7 +45,6 @@ vim.keymap.set("n", "<M-k>", "<C-W>+")
 vim.keymap.set("n", "<M-j>", "<C-W>-")
 vim.keymap.set("n", "J", "mzJ'z")
 vim.keymap.set("n", "<leader>ut", "<cmd>UndotreeToggle<CR>")
-vim.keymap.set("x", "<leader>p", "\"_dP")
 vim.keymap.set("n", "<C-d>", "<C-d>zzzv")
 vim.keymap.set("n", "<C-u>", "<C-u>zzzv")
 vim.keymap.set("n", "n", "nzzzv")

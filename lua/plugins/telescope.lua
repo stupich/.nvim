@@ -11,6 +11,9 @@ return {
           fzf = {}
         },
         pickers = {
+          diagnostics = {
+            theme = "ivy"
+          },
           find_files = {
             theme = "ivy"
           }
@@ -21,6 +24,8 @@ return {
 
       vim.keymap.set("n", "gd", require('telescope.builtin').lsp_definitions)
       vim.keymap.set("n", "<space>fh", require('telescope.builtin').help_tags)
+      vim.keymap.set("n", "<space>gf", require('telescope.builtin').git_files)
+      vim.keymap.set("n", "<space>fe", require('telescope.builtin').diagnostics)
       vim.keymap.set("n", "<space>fd",
         require('telescope.builtin').find_files
       )
