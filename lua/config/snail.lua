@@ -9,6 +9,7 @@ return {
     snailleft = { "󱙷" },
     snailidle = { "꩜" },
     snailright = { "󱙷" },
+    snaildead = { "GO SLEEP YOU MF!" },
     tanksize = 15,
   },
   new_snail = function()
@@ -44,6 +45,9 @@ return {
       snailText = opts.snailright
     elseif snail.direction < 0 then
       snailText = opts.snailleft
+    end
+    if tonumber(os.date("%H")) >= 23 and tonumber(os.date("%H")) >= 50 then
+      snailText = opts.snaildead
     end
     local snailLength = #snailText
 

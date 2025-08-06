@@ -1,17 +1,37 @@
 require("config.lazy")
 
 
+--neovide specific stuff
+
+if vim.g.neovide then
+    vim.o.guifont = "Iosevka Nerd Font:h17"
+    vim.g.neovide_scale_factor = 1.0
+    local change_scale_factor = function(delta)
+        vim.g.neovide_scale_factor = vim.g.neovide_scale_factor * delta
+    end
+    vim.keymap.set("n", "<C-+>", function()
+        change_scale_factor(1.05)
+    end)
+    vim.keymap.set("n", "<C-->", function()
+        change_scale_factor(1 / 1.05)
+    end)
+    vim.keymap.set("n", "<C-=>", function()
+        vim.g.neovide_scale_factor = 1.0
+    end)
+    vim.keymap.set('v', '<M-c>', '"+y')    -- Copy
+    vim.keymap.set('n', '<M-v>', '"+P')    -- Paste normal mode
+    vim.keymap.set('v', '<M-v>', '"+P')    -- Paste visual mode
+    vim.keymap.set('c', '<M-v>', '<C-R>+') -- Paste command mode
+end
 --options
 vim.opt.scrolloff = 14
+vim.o.winborder = "rounded"
 vim.opt.inccommand = 'split'
 vim.opt.cursorline = true
 vim.opt.hlsearch = true
 vim.opt.incsearch = true
 vim.opt.termguicolors = true
-require('moonfly').custom_colors({
-  bg = "#000000",
-})
-vim.cmd [[colorscheme moonfly]]
+vim.cmd [[colorscheme vague]]
 vim.api.nvim_set_hl(0, 'MiniFilesNormal', { bg = '#000000' })
 vim.opt.shiftwidth = 4
 vim.opt.tabstop = 4
@@ -28,13 +48,11 @@ vim.opt.backup = false
 vim.opt.undodir = os.getenv("HOME") .. "/.vim/undodir"
 vim.opt.undofile = true
 vim.opt.signcolumn = "yes"
-vim.opt.updatetime = 50
 vim.opt.colorcolumn = "80"
 vim.lsp.set_log_level("ERROR")
 
 --keymaps
-vim.keymap.set('n', "<leader>q", vim.diagnostic.setloclist)
-vim.keymap.set('n', "<leader><leader>x", "<cmd>source %<CR>")
+vim.keymap.set('n', "<leader><leader>x", ":source<CR>")
 vim.keymap.set("n", "<c-j>", "<c-w><c-j>")
 vim.keymap.set("n", "<c-k>", "<c-w><c-k>")
 vim.keymap.set("n", "<c-l>", "<c-w><c-l>")
@@ -60,20 +78,22 @@ vim.keymap.set("n", "<C-c>", "<cmd>nohlsearch<CR>")
 
 --rust-analyzer workaround, for before nvim 0.11
 for _, method in ipairs({ 'textDocument/diagnostic', 'workspace/diagnostic' }) do
-  local default_diagnostic_handler = vim.lsp.handlers[method]
-  vim.lsp.handlers[method] = function(err, result, context, config)
-    if err ~= nil and err.code == -32802 then
-      return
+    local default_diagnostic_handler = vim.lsp.handlers[method]
+    vim.lsp.handlers[method] = function(err, result, context, config)
+        if err ~= nil and err.code == -32802 then
+            return
+        end
+        return default_diagnostic_handler(err, result, context, config)
     end
-    return default_diagnostic_handler(err, result, context, config)
-  end
 end
 
-
+vim.api.nvim_create_user_command('ItsTimeToGoToBed', function()
+    vim.cmd('terminal mpv --vo=tct --really-quiet ~/Videos/areyare.mp4')
+end, {})
 vim.api.nvim_create_autocmd('textyankpost', {
-  desc = 'Highlight',
-  group = vim.api.nvim_create_augroup('highlight-yank', { clear = true }),
-  callback = function()
-    vim.highlight.on_yank()
-  end,
+    desc = 'Highlight',
+    group = vim.api.nvim_create_augroup('highlight-yank', { clear = true }),
+    callback = function()
+        vim.highlight.on_yank()
+    end,
 })

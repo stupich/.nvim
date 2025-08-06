@@ -1,2 +1,12 @@
 return {
-  { "bluz71/vim-moonfly-colors", name = "moonfly", lazy = false, priority = 1000 }, }
+  {
+    "vague2k/vague.nvim",
+    config = function()
+      require("vague").setup({
+        colors = {
+          bg = "#000000",
+        }
+      })
+    end
+  }
+}

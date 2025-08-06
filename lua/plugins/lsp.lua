@@ -1,7 +1,66 @@
 return {
   {
+    "Saghen/blink.cmp",
+    version = '1.4.1',
+    opts = {
+      keymap = {
+        preset = 'default',
+        ['<C-n>'] = { 'show', 'select_next' },
+      },
+      completion = {
+        ghost_text = { enabled = true },
+        menu = {
+          auto_show = false,
+          border = 'single',
+          draw = {
+            columns = { { "kind_icon" }, { "label", gap = 0 } },
+            components = {
+              label = {
+                text = function(ctx)
+                  return require("colorful-menu").blink_components_text(ctx)
+                end,
+                highlight = function(ctx)
+                  return require("colorful-menu").blink_components_highlight(ctx)
+                end,
+              },
+            },
+          },
+        },
+        documentation = { auto_show = true, window = { border = 'single' }, },
+        list = {
+          selection = {
+            preselect = true,
+            auto_insert = false,
+          },
+        },
+      },
+      appearance = {
+        nerd_font_variant = 'mono'
+      },
+      sources = {
+        default = { 'lazydev', 'lsp', 'path' },
+        providers = {
+          lazydev = {
+            name = "LazyDev",
+            module = "lazydev.integrations.blink",
+            -- make lazydev completions top priority (see `:h blink.cmp`)
+            score_offset = 100,
+          },
+        },
+      },
+      signature = { enabled = true, window = { border = 'single' } }
+    },
+    fuzzy = { implementation = "prefer_rust" },
+
+    -- allows extending the providers array elsewhere in your config
+    -- without having to redefine it
+    opts_extend = { "sources.default" }
+
+  },
+  {
     "neovim/nvim-lspconfig",
     dependencies = {
+      'Saghen/blink.cmp',
       {
         "folke/lazydev.nvim",
         ft = "lua",
@@ -12,58 +71,63 @@ return {
         }
       },
     },
-    opts = { servers = { tailwindcss = {}, pyright = {}, lua_ls = {}, zls = {}, rust_analyzer = {}, gopls = {}, gdscript = {}, intelephense = {}, ts_ls = {}, clangd = {} } },
+    opts = { servers = { lua_ls = {}, rust_analyzer = {}, qmlls = { cmd = { "qmlls6", "-E" } } } },
     config = function(_, opts)
-      vim.keymap.set("n", "<space>rn", vim.lsp.buf.rename)
-      vim.keymap.set("n", "<space>ca", vim.lsp.buf.code_action)
-      local lspconfig = require('lspconfig')
       for server, config in pairs(opts.servers) do
-        -- passing config.capabilities to blink.cmp merges with the capabilities in your
-        -- `opts[server].capabilities, if you've defined it
-        -- config.capabilities = require('blink.cmp').get_lsp_capabilities(config.capabilities)
-        lspconfig[server].setup(config)
-        vim.diagnostic.config({ virtual_text = { current_line = true } })
-        vim.cmd [[set completeopt+=menuone,noselect,popup]]
-        vim.api.nvim_create_autocmd('LspAttach', {
-          callback = function(ev)
-            local client = vim.lsp.get_client_by_id(ev.data.client_id)
-            if client:supports_method('textDocument/completion') and client.name ~= 'minuet' then
-              local chars = {}; for i = 32, 126 do table.insert(chars, string.char(i)) end
-              client.server_capabilities.completionProvider.triggerCharacters = chars
-              vim.lsp.completion.enable(true, client.id, ev.buf, {
-                autotrigger = true,
-              })
-            end
-          end,
-        })
+        vim.lsp.config(server, config)
+        vim.lsp.enable(server)
       end
+      vim.api.nvim_create_autocmd('LspAttach', {
+        group = vim.api.nvim_create_augroup('my.lsp', {}),
+        callback = function(args)
+          local client = assert(vim.lsp.get_client_by_id(args.data.client_id))
+          vim.keymap.set('n', '<C-q>', function()
+            if vim.diagnostic.config().virtual_lines then
+              vim.diagnostic.config({ virtual_lines = false })
+            else
+              vim.diagnostic.config({ virtual_lines = { current_line = true } })
+            end
+          end
+          )
+          vim.keymap.set('n', '<M-d>', function()
+            local new_state = not vim.diagnostic.config().virtual_lines.current_line
+            vim.diagnostic.config({ virtual_lines = { current_line = new_state } })
+          end
+          )
+
+          if not client:supports_method('textDocument/willSaveWaitUntil')
+              and client:supports_method('textDocument/formatting') then
+            vim.api.nvim_create_autocmd('BufWritePre', {
+              group = vim.api.nvim_create_augroup('my.lsp', { clear = false }),
+              buffer = args.buf,
+              callback = function()
+                vim.lsp.buf.format({ bufnr = args.buf, id = client.id, timeout_ms = 1000 })
+              end,
+            })
+          end
+        end
+      })
     end,
   },
   {
-    "stevearc/conform.nvim",
-    event = { 'BufWritePre' },
-    cmd = { 'ConformInfo' },
-    keys = {},
-    opts = {
-      format_on_save = function(bufnr)
-        -- Disable "format_on_save lsp_fallback" for languages that don't
-        -- have a well standardized coding style. You can add additional
-        -- languages here or re-enable it for the disabled ones.
-        local disable_filetypes = { c = false, cpp = false }
-        local lsp_format_opt
-        if disable_filetypes[vim.bo[bufnr].filetype] then
-          lsp_format_opt = 'never'
-        else
-          lsp_format_opt = 'fallback'
-        end
-        return {
-          timeout_ms = 500,
-          lsp_format = lsp_format_opt,
-        }
-      end,
-      formatters_by_ft = {
-        zig = { 'zig fmt' },
-      },
-    },
+    "xzbdmw/colorful-menu.nvim",
+    config = function()
+      require('colorful-menu').setup({
+        ls = {
+          lua_ls = {
+            extra_info_hl = "@comment",
+            align_type_to_right = true,
+            preserve_type_when_truncate = true,
+          },
+          rust_analyzer = {
+            extra_info_hl = "@comment",
+            align_type_to_right = true,
+            preserve_type_when_truncate = true,
+          },
+        },
+        fallback_highlight = "@variable",
+        max_width = 60,
+      })
+    end
   },
 }
