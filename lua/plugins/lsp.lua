@@ -71,7 +71,7 @@ return {
         }
       },
     },
-    opts = { servers = { lua_ls = {}, rust_analyzer = {}, qmlls = { cmd = { "qmlls6", "-E" } } } },
+    opts = { servers = { lua_ls = {}, gopls = {}, } },
     config = function(_, opts)
       for server, config in pairs(opts.servers) do
         vim.lsp.config(server, config)
@@ -129,5 +129,10 @@ return {
         max_width = 60,
       })
     end
+  },
+  {
+    "mrcjkb/rustaceanvim",
+    version = "^6",
+    lazy = false,
   },
 }
