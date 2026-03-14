@@ -7,6 +7,7 @@ return {
       local git = require 'mini.git'
       local indentscope = require 'mini.indentscope'
       local icons = require 'mini.icons'
+      local misc = require 'mini.misc'
       move.setup {
         mappings = {
           left = '<C-h>',
@@ -29,6 +30,8 @@ return {
       }
       git.setup()
       vim.keymap.set("n", "-", MiniFiles.open)
+      misc.setup()
+      misc.setup_auto_root()
     end
   }
 }

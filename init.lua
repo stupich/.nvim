@@ -4,7 +4,9 @@ require("config.lazy")
 --neovide specific stuff
 
 if vim.g.neovide then
-    vim.o.guifont = "Iosevka Nerd Font:h17"
+    vim.o.cmdheight = 0
+    vim.g.neovide_cursor_hack = true
+    vim.g.neovide_padding = -10 
     vim.g.neovide_scale_factor = 1.0
     local change_scale_factor = function(delta)
         vim.g.neovide_scale_factor = vim.g.neovide_scale_factor * delta
@@ -25,14 +27,13 @@ if vim.g.neovide then
 end
 --options
 vim.opt.scrolloff = 14
+vim.opt.sidescrolloff = 80
 vim.o.winborder = "rounded"
 vim.opt.inccommand = 'split'
 vim.opt.cursorline = true
 vim.opt.hlsearch = true
 vim.opt.incsearch = true
 vim.opt.termguicolors = true
-vim.cmd [[colorscheme vague]]
-vim.api.nvim_set_hl(0, 'MiniFilesNormal', { bg = '#000000' })
 vim.opt.shiftwidth = 4
 vim.opt.tabstop = 4
 vim.opt.softtabstop = 4
@@ -76,16 +77,6 @@ vim.keymap.set("n", "<leader>d", "\"_d")
 vim.keymap.set("v", "<leader>d", "\"_d")
 vim.keymap.set("n", "<C-c>", "<cmd>nohlsearch<CR>")
 
---rust-analyzer workaround, for before nvim 0.11
-for _, method in ipairs({ 'textDocument/diagnostic', 'workspace/diagnostic' }) do
-    local default_diagnostic_handler = vim.lsp.handlers[method]
-    vim.lsp.handlers[method] = function(err, result, context, config)
-        if err ~= nil and err.code == -32802 then
-            return
-        end
-        return default_diagnostic_handler(err, result, context, config)
-    end
-end
 
 vim.api.nvim_create_user_command('ItsTimeToGoToBed', function()
     vim.cmd('terminal mpv --vo=tct --really-quiet ~/Videos/areyare.mp4')

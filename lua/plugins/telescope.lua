@@ -1,8 +1,6 @@
 return {
   {
     'nvim-telescope/telescope.nvim',
-    tag = '0.1.8',
-    -- or                              , branch = '0.1.x',
     dependencies = { 'nvim-lua/plenary.nvim',
       { 'nvim-telescope/telescope-fzf-native.nvim', build = 'make' } },
     config = function()
@@ -22,7 +20,8 @@ return {
 
       require('telescope').load_extension('fzf')
 
-      vim.keymap.set("n", "gd", require('telescope.builtin').lsp_definitions)
+      vim.keymap.set("n", "<space>sd", require('telescope.builtin').lsp_definitions)
+      vim.keymap.set("n", "<space>sr", require('telescope.builtin').lsp_references)
       vim.keymap.set("n", "<space>fh", require('telescope.builtin').help_tags)
       vim.keymap.set("n", "<space>gf", require('telescope.builtin').git_files)
       vim.keymap.set("n", "<space>fe", require('telescope.builtin').diagnostics)
